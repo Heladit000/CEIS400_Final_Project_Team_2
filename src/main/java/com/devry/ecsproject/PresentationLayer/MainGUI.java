@@ -16,12 +16,13 @@ public class MainGUI extends javax.swing.JFrame {
      * Creates new form LoginGUI_New
      */
     public MainGUI() {
+        // initializer for MainGUI 
         initComponents();
         
         // set window to center of screen
         this.setLocationRelativeTo(null);
 
-    }
+    } 
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -204,7 +205,7 @@ public class MainGUI extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new MainGUI().setVisible(true));
-    }
+    } // end of main
     
     
     private void mniExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniExitActionPerformed
@@ -216,14 +217,23 @@ public class MainGUI extends javax.swing.JFrame {
         // button on screen clicked
 
         // get input from boxes
-        String inputName = "Uknown";
+        String inputName = "Unknown";
         int inputId = 0;
         
+        // TODO
         // validate inputs
         // check name is not empty
         // check id is not empty
-
-        verifyUser(inputName, inputId);
+        
+        // verify user exists in database
+        verifyUser(inputName, inputId); // TODO
+        
+        // check user access level in order to show proper UI options
+        // Equipment Manager gets "Equipment" Tab and so forth
+        
+        // load proper UI tabs into Main UI Frame
+        
+        
         
     }//GEN-LAST:event_btnLoginActionPerformed
 
@@ -248,7 +258,8 @@ public class MainGUI extends javax.swing.JFrame {
     
     
     private boolean verifyUser(String inputName, int inputId) {
-        // TODO check user against active users in database, return boolean for verification
+        // TODO check user against active users in database
+        // return boolean for verification
         return false;
     } // end of verifyUser
     
