@@ -36,8 +36,8 @@ public class DBConnect {
             Connection conn = DriverManager.getConnection(url);
             Statement stmt = conn.createStatement();
             PreparedStatement update = conn.prepareStatement(userUpdate);
-            int rowsAffected = update.executeUpdate();
-            System.out.println("Updated " + rowsAffected + " in " + table);
+            update.executeUpdate();
+            
         } catch(Exception e) {
             e.printStackTrace();
             System.out.println("Could not save data to " + table);
@@ -48,8 +48,7 @@ public class DBConnect {
         try {
             Connection conn = DriverManager.getConnection(url);
             PreparedStatement delete = conn.prepareStatement(userDelete);
-            int rowsAffected = delete.executeUpdate();
-            System.out.println("Entries deleted.");
+            delete.executeUpdate();
         } catch(Exception e) {
             e.printStackTrace();
             System.out.println("Could not delete data from " + table);

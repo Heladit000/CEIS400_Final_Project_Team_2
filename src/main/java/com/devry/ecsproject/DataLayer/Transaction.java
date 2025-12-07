@@ -5,6 +5,7 @@
 package com.devry.ecsproject.DataLayer;
 
 import java.util.Date;
+import com.devry.ecsproject.BusinessLayer.DBConnect;
 
 /**
  *
@@ -13,17 +14,22 @@ import java.util.Date;
 public class Transaction {
     private int transactionID;
     private int equipmentID;
-    private int userID;
+    private int employeeID;
     private String type;
     private Date transactionDate;
     
     // constructors
-    public void Transaction(int transactionID, int equipmentID, int userID, String type, Date transactionDate) {
+    public Transaction(int transactionID, int equipmentID, int employeeID, String type, Date transactionDate) {
         setTransactionID(transactionID);
         setEquipmentID(equipmentID);
-        setUserID(userID);
+        setEmployeeID(employeeID);
         setType(type);
         setTransactionDate(transactionDate);
+    }
+
+    public void recordTransaction(){
+        String sqlQuery = "INSERT INTO transactions (equipmentID, employeeID, type, transactionDate) VALUES (" + getEquipmentID() + ", " + getEmployeeID() + ", '" + getType() + "', " + getTransactionDate() + ");";
+        DBConnect.saveData("transactions", sqlQuery);
     }
     
     // getters and setters
@@ -43,12 +49,12 @@ public class Transaction {
         this.equipmentID = equipmentID;
     }
     
-    public int getUserID() {
-        return this.userID;
+    public int getEmployeeID() {
+        return this.employeeID;
     }
     
-    public void setUserID(int userID) {
-        this.userID = userID;
+    public void setEmployeeID(int employeeID) {
+        this.employeeID = employeeID;
     }
     
     public String getType() {
