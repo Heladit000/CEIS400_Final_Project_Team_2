@@ -26,9 +26,11 @@ public class Equipment {
     public void updateEquipment() {
         String sqlQuery = "UPDATE equipment SET name = '" + getName() + "', type = '" + getType() + "', damage = " + isDamage() + ", available = " + isAvailable() + " WHERE equipmentID = " + getEquipmentID() + ";";
         DBConnect.saveData("equipment", sqlQuery);
+        System.out.println("EQUIPMENT UPDATED\n---------------------------\nEquipID: " + getEquipmentID() + "\nName: " + getName() + "\nType: " + getType() + "\nDamage: " + isDamage() + "\nAvailable: " + isAvailable());
     }
 
     public void getLastServiceDate() {
+        System.out.println("LAST SERVICE DATE FOR " + getEquipmentID() + ": ");
         String sqlQuery = "SELECT MAX(transactionDate) FROM transactions WHERE equipmentID = " + getEquipmentID() + " AND type = 'maintenance';";
         DBConnect.getData("transactions", sqlQuery);
     }

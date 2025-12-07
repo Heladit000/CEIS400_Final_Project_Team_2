@@ -30,6 +30,7 @@ public class Transaction {
     public void recordTransaction(){
         String sqlQuery = "INSERT INTO transactions (equipmentID, employeeID, type, transactionDate) VALUES (" + getEquipmentID() + ", " + getEmployeeID() + ", '" + getType() + "', " + getTransactionDate() + ");";
         DBConnect.saveData("transactions", sqlQuery);
+        System.out.println("TRANSACTION RECORDED\n---------------------------\nEmpID: " + getEmployeeID() + "\nEquipID: " + getEquipmentID() + "\nType: " + getType());
     }
     
     // getters and setters

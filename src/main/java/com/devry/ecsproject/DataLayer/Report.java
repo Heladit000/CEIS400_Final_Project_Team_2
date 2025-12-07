@@ -26,6 +26,19 @@ public class Report {
     public void getReport() {
         String sqlQuery = "SELECT * FROM reports WHERE reportID = " + getReportID() + ";";
         DBConnect.getData("reports", sqlQuery);
+        System.out.println("REPORT RETRIEVED: " + getReportID());
+    }
+
+    public void saveReport() {
+        String sqlQuery = "INSERT INTO reports (reportType, date, reportText) VALUES ('" + getReportType() + "', '" + getDate() + "', '" + getReportText() + "');";
+        DBConnect.saveData("reports", sqlQuery);
+        System.out.println("REPORT SAVED: " + getReportID());
+    }
+
+    public void deleteReport() {
+        String sqlQuery = "DELETE FROM reports WHERE reportID = " + getReportID() + ";";
+        DBConnect.deleteData("reports", sqlQuery);
+        System.out.println("REPORT DELETED: " + getReportID());
     }
 
     public int getReportID() {
