@@ -1030,6 +1030,7 @@ public class EmployeeGUI extends javax.swing.JPanel {
                 
                 // Clear the form
                 textHireEmployeeName.setText("");
+                textHireEmployeeEmail.setText("");
                 textHireEmployeeRole.setText("");
                 textHireEmployeeDepartment.setText("");
                 textHireEmployeeAccess.setText("");
@@ -1131,12 +1132,12 @@ public class EmployeeGUI extends javax.swing.JPanel {
     }                                                          
 
     private void clearTerminateEmployeeFields() {
-        lblTerminateEmployeeName.setText("---");
-        lblTerminateEmployeeEmail.setText("---");
-        lblTerminateEmployeeRole.setText("---");
-        lblTerminateEmployeeDepartment.setText("---");
-        lblTerminateEmployeeAccess.setText("---");
-        lblTerminateEmployeeDate.setText("---");
+        textTerminateEmployeeName.setText("---");
+        textTerminateEmployeeEmail.setText("---");
+        textTerminateEmployeeRole.setText("---");
+        textTerminateEmployeeDepartment.setText("---");
+        textTerminateEmployeeAccess.setText("---");
+        textTerminateEmployeeDate.setText("---");
     }
 
 
