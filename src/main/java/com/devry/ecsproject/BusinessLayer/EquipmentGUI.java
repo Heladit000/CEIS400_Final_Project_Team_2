@@ -26,6 +26,28 @@ public class EquipmentGUI extends javax.swing.JPanel {
     public EquipmentGUI() {
         initComponents();
         equipmentService = new EquipmentGUIService();
+        
+        // Add tooltips to show available equipment
+        updateEquipmentInfo();
+    }
+    
+    /**
+     * Update the UI to show available equipment information
+     */
+    private void updateEquipmentInfo() {
+        String equipmentInfo = EquipmentGUIService.getAvailableEquipmentInfo();
+        textEquipmentID.setToolTipText(equipmentInfo);
+        lblEquipmentID.setToolTipText(equipmentInfo);
+        
+        // Also show in console for reference
+        System.out.println("=== AVAILABLE EQUIPMENT ===");
+        for (com.devry.ecsproject.DataLayer.Equipment eq : EquipmentGUIService.getAllEquipment()) {
+            System.out.println("ID: " + eq.getEquipmentID() + " | " + eq.getName() + 
+                             " | Type: " + eq.getType() + 
+                             " | Available: " + eq.isAvailable() + 
+                             " | Damaged: " + eq.isDamage());
+        }
+        System.out.println("=============================");
     }
 
     /**
@@ -49,7 +71,6 @@ public class EquipmentGUI extends javax.swing.JPanel {
         rdoBtnCheckout = new javax.swing.JRadioButton();
         lblTransactionType = new javax.swing.JLabel();
         checkDamaged = new javax.swing.JCheckBox();
-        lblPassFailMessage = new javax.swing.JLabel();
         btnSubmitEquipmentTransaction = new javax.swing.JButton();
 
         pnlEquipment.setBackground(new java.awt.Color(204, 204, 204));
@@ -150,11 +171,6 @@ public class EquipmentGUI extends javax.swing.JPanel {
         checkDamaged.setToolTipText("");
         checkDamaged.addActionListener(this::checkDamagedActionPerformed);
 
-        lblPassFailMessage.setText("Transaction success!");
-        lblPassFailMessage.setVisible(false);
-        lblPassFailMessage.setFont(new java.awt.Font("Candara", 0, 12));
-        lblPassFailMessage.setPreferredSize(new java.awt.Dimension(160, 25));
-
         btnSubmitEquipmentTransaction.setFont(new java.awt.Font("Candara", 0, 14)); // NOI18N
         btnSubmitEquipmentTransaction.setText("Submit");
         btnSubmitEquipmentTransaction.addActionListener(this::btnSubmitEquipmentTransactionActionPerformed);
@@ -234,31 +250,30 @@ public class EquipmentGUI extends javax.swing.JPanel {
         );
     }// </editor-fold>                        
 
+    /**
+     * TR-002: Flexible ID parsing for Equipment Code / Employee ID.
+     * Accepts numeric-only IDs (e.g., 1234) and prefixed formats like EMP-1023 / EQ-5501.
+     * Throws IllegalArgumentException with a user-friendly message if invalid.
+     */
+    private int parseFlexibleId(String input, String fieldName) {
+        if (input == null || input.trim().isEmpty()) {
+            throw new IllegalArgumentException(fieldName + " cannot be empty.");
+        }
 
-/**
- * TR-002: Flexible ID parsing for Equipment Code / Employee ID.
- * Accepts numeric-only IDs (e.g., 1234) and prefixed formats like EMP-1023 / EQ-5501.
- * Throws IllegalArgumentException with a user-friendly message if invalid.
- */
-private int parseFlexibleId(String input, String fieldName) {
-    if (input == null || input.trim().isEmpty()) {
-        throw new IllegalArgumentException(fieldName + " cannot be empty.");
+        String numericPart = input.trim()
+                .toUpperCase()
+                .replace("EMP-", "")
+                .replace("EQ-", "")
+                .replaceAll("[^0-9]", "");
+
+        if (numericPart.isEmpty() || !numericPart.matches("\\d+")) {
+            throw new IllegalArgumentException(
+                    "Invalid " + fieldName + " format. Accepted: 1234, EMP-1234, EQ-5678"
+            );
+        }
+
+        return Integer.parseInt(numericPart);
     }
-
-    String numericPart = input.trim()
-            .toUpperCase()
-            .replace("EMP-", "")
-            .replace("EQ-", "")
-            .replaceAll("[^0-9]", "");
-
-    if (numericPart.isEmpty() || !numericPart.matches("\\d+")) {
-        throw new IllegalArgumentException(
-                "Invalid " + fieldName + " format. Accepted: 1234, EMP-1234, EQ-5678"
-        );
-    }
-
-    return Integer.parseInt(numericPart);
-}
 
     private void rdoBtnCheckinActionPerformed(java.awt.event.ActionEvent evt) {                                              
         transactionType = "checkin";
@@ -275,94 +290,92 @@ private int parseFlexibleId(String input, String fieldName) {
     }                                            
 
     private void btnSubmitEquipmentTransactionActionPerformed(java.awt.event.ActionEvent evt) {                                                              
-    try {
-        int equipmentID;
-        int employeeID;
-
-        // TR-002: Validate and parse ID formats (supports numeric-only and EMP-/EQ- prefixed inputs)
         try {
-            equipmentID = parseFlexibleId(textEquipmentID.getText(), "Equipment Code");
-            employeeID  = parseFlexibleId(textEmployeeID.getText(), "Employee ID");
-        } catch (IllegalArgumentException ex) {
-            lblPassFailMessage.setText(ex.getMessage());
-            lblPassFailMessage.setVisible(true);
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Invalid Input", JOptionPane.ERROR_MESSAGE);
-            return;
+            int equipmentID;
+            int employeeID;
+
+            // TR-002: Validate and parse ID formats (supports numeric-only and EMP-/EQ- prefixed inputs)
+            try {
+                equipmentID = parseFlexibleId(textEquipmentID.getText(), "Equipment Code");
+                employeeID  = parseFlexibleId(textEmployeeID.getText(), "Employee ID");
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (transactionType.isEmpty()) {
+                String msg = "Please select Check In or Check Out.";
+                JOptionPane.showMessageDialog(this, msg, "Missing Transaction Type", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            Equipment equipment = equipmentService.getEquipmentByID(equipmentID);
+
+            // TR-003: Provide clear GUI feedback for common failure conditions (not console-only)
+            if (equipment == null) {
+                String msg = "Checkout/Check-in failed: Equipment ID " + equipmentID + " was not found.";
+                JOptionPane.showMessageDialog(this, msg, "Transaction Failed", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (isDamaged) {
+                equipment.setDamage(true);
+                equipmentService.setDamageStatus(true);
+            }
+
+            boolean isAvailable = transactionType.equals("checkin");
+            equipment.setAvailable(isAvailable);
+            equipmentService.setAvailability(isAvailable);
+            
+            Date transactionDate = new Date();
+            
+            // Only save to database if USE_DATABASE is true
+            if (EquipmentGUIService.isUsingDatabase()) {
+                Transaction transaction = new Transaction(0, equipmentID, employeeID, transactionType, transactionDate);
+                transaction.recordTransaction();
+            }
+            
+            EquipmentGUIService.addTransaction(equipmentID, employeeID, transactionType, transactionDate);
+            
+            // TR-003: Explicit confirmation message in the GUI (Checkout vs Check-in + damaged flag)
+            String actionText = transactionType.equalsIgnoreCase("checkout") ? "checked out to" : "checked in by";
+            String msg = "Transaction successful: Equipment " + equipmentID + " " + actionText + " Employee " + employeeID + ".";
+            if (isDamaged) {
+                msg += " (Marked as damaged)";
+            }
+
+            JOptionPane.showMessageDialog(this, msg, "Success", JOptionPane.INFORMATION_MESSAGE);
+            
+            // Clear the form
+            textEquipmentID.setText("");
+            textEmployeeID.setText("");
+            rdoBtnCheckin.setSelected(false);
+            rdoBtnCheckout.setSelected(false);
+            checkDamaged.setSelected(false);
+            transactionType = "";
+            isDamaged = false;
+            
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Invalid ID format. Please use: 1234, EMP-1234, or EQ-5678", 
+                "Input Error", 
+                JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error processing transaction: " + e.getMessage(), 
+                "Transaction Error", 
+                JOptionPane.ERROR_MESSAGE);
         }
-
-        if (transactionType.isEmpty()) {
-            String msg = "Please select Check In or Check Out.";
-            lblPassFailMessage.setText(msg);
-            lblPassFailMessage.setVisible(true);
-            JOptionPane.showMessageDialog(this, msg, "Missing Transaction Type", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        Equipment equipment = equipmentService.getEquipmentByID(equipmentID);
-
-        // TR-003: Provide clear GUI feedback for common failure conditions (not console-only)
-        if (equipment == null) {
-            String msg = "Checkout/Check-in failed: Equipment ID " + equipmentID + " was not found.";
-            lblPassFailMessage.setText(msg);
-            lblPassFailMessage.setVisible(true);
-            JOptionPane.showMessageDialog(this, msg, "Transaction Failed", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (isDamaged) {
-            equipment.setDamage(true);
-            equipmentService.setDamageStatus(true);
-        }
-
-        boolean isAvailable = transactionType.equals("checkin");
-        equipment.setAvailable(isAvailable);
-        equipmentService.setAvailability(isAvailable);
-
-        Date transactionDate = new Date();
-
-        // Only save to database if USE_DATABASE is true
-        if (EquipmentGUIService.isUsingDatabase()) {
-            Transaction transaction = new Transaction(0, equipmentID, employeeID, transactionType, transactionDate);
-            transaction.recordTransaction();
-        }
-
-        EquipmentGUIService.addTransaction(equipmentID, employeeID, transactionType, transactionDate);
-
-        // TR-003: Explicit confirmation message in the GUI (Checkout vs Check-in + damaged flag)
-        String actionText = transactionType.equalsIgnoreCase("checkout") ? "checked out to" : "checked in by";
-        String msg = "Transaction successful: Equipment " + equipmentID + " " + actionText + " Employee " + employeeID + ".";
-        if (isDamaged) {
-            msg += " (Marked as damaged)";
-        }
-
-        lblPassFailMessage.setText(msg);
-        lblPassFailMessage.setVisible(true);
-        JOptionPane.showMessageDialog(this, msg, "Success", JOptionPane.INFORMATION_MESSAGE);
-
-        // Reset form
-        textEquipmentID.setText("");
-        textEmployeeID.setText("");
-        rdoBtnCheckin.setSelected(false);
-        rdoBtnCheckout.setSelected(false);
-        checkDamaged.setSelected(false);
-        transactionType = "";
-        isDamaged = false;
-
-    } catch (Exception e) {
-        // Keep UI responsive and provide feedback for unexpected issues
-        JOptionPane.showMessageDialog(this, "Unexpected error: " + e.getMessage(), "System Error", JOptionPane.ERROR_MESSAGE);
-    }
-}                                                             
+    }                                                             
 
 
-// Variables declaration - do not modify                     
+    // Variables declaration - do not modify                     
     private javax.swing.JButton btnSubmitEquipmentTransaction;
     private javax.swing.JCheckBox checkDamaged;
     private javax.swing.JLabel lblEmployeeID;
     private javax.swing.JLabel lblEquipmentID;
     private javax.swing.JLabel lblTitle1;
     private javax.swing.JLabel lblTransactionType;
-    private javax.swing.JLabel lblPassFailMessage;
     private javax.swing.JPanel pnlEquipment;
     private javax.swing.JPanel pnlRecords;
     private javax.swing.JPanel pnlTransaction;
