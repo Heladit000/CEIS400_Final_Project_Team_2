@@ -4,7 +4,7 @@
 Equipment Checkout System
 
 Current Release:
-
+https://github.com/Heladit000/CEIS400_Final_Project_Team_2/releases/tag/v2.0
 
 This Equipment Checkout System allows users to manage various aspects of business maintenance for our company, including equipment, employees, and records.
 
@@ -14,7 +14,17 @@ Installation
 
 First download the current release from the link above.
 
+Ensure the .env is within the root folder of the project for DB access.
+
 Then, run the project ensuring the ECSProject.java is the main selected file. 
+
+Log in with test user information:
+
+Email: `test.user@gbm.com`
+
+ID: `1542`
+
+Finally you have access to system functions including Equipment, Supervision, and Records.
 
 ---
 
